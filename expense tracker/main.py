@@ -1,9 +1,16 @@
 import pandas, os
 choice = 0
 if os.path.exists('data.csv'):
-    dataset = pandas.read_csv("data.csv")
+    dataset = pandas.read_csv("data.csv").to_dict()
 else:
-    dataset = pandas.DataFrame(columns=["data","category","amount","type"])
+    dataset = pandas.DataFrame(columns=["date","category","amount","type"]).to_dict()
+for u in dataset:
+    n = dataset[u]
+    w = []
+    for o in n:
+        w.append(n[o])
+    dataset[u] = w
+print(dataset)
 
 while choice != 3:
     choice = int(input("\n\nchoice \n 1.import \n 2. summary \n 3.exit and save\n"))
@@ -24,6 +31,7 @@ while choice != 3:
                 total -= dataset["amount"][i]
         print(f"\n\n---total expense:{total}")
         input("")
+
 dataset = pandas.DataFrame(dataset)
 dataset.to_csv('data.csv', index=False) 
 
