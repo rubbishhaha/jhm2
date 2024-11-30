@@ -1,3 +1,11 @@
 date,category,amount,t_type
-2024-11-30,fodd,20202090202,income
-donos,somso,3083,income
+2024-11-30,a,-3,expense
+2024-11-30,a,1,income
+2024-11-30,a,4,income
+2024-11-30,a,5,income
+2024-10-30,b,3,income
+2024-11-30,b,-9,expense
+2024-11-30,food,-5,expense
+2024-11-30,food,-30,expense
+2024-11-30,r,5,income
+2024-11-29,transport,-5,expense
