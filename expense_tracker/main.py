@@ -1,3 +1,6 @@
+'''
+this is the old version, main2.py is the latest one
+'''
 import pandas, os
 choice = 0
 if os.path.exists('data.csv'):
