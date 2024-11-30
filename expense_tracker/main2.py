@@ -72,7 +72,7 @@ while choice != 4:
         print("sort by",sort)
         print(dataset)
         summary(dataset)
-        if input("press space -> enter to rearrangement\n") == " ":
+        if input("press space -> enter edit sort\n") == " ":
             rerun = True
             sort = input("sort(column):")
             dataset.sort_values(by=[str(sort)],inplace=True)
