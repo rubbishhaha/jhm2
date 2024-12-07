@@ -8,7 +8,7 @@ def set_player(Pnum):
     return a
 def set_board(Pnum,rnum):
     a = []
-    for i in range(Pnum):
+    for i in range(Pnum-1):
         a.append({})
         for u in range(rnum):
             a[i][u] = BLANK
@@ -24,5 +24,8 @@ def add_line(player,board,column,row):
     for r in range(len(board[0])):
         for c in range(len(board)):
             if board[c][r] == LINE:
-                print("zazazazazazazaazazazzaaza")
+                a = int(player[c])
+                player[c] = int(player[c+1])
+                player[c+1] = a
+                print("shd")
     return player,board
