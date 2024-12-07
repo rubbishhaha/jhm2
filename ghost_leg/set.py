@@ -13,19 +13,35 @@ def set_board(Pnum,rnum):
         for u in range(rnum):
             a[i][u] = BLANK
     return a
-def board_show(board):
+def board_show(board,round):
+    COLUMN_print(len(board)+1)
     for row in range(len(board[0])):
         for column in range(len(board)):
             print(COLUMN,end="")
             print(board[column][row],end="")
         print(COLUMN)
-def add_line(player,board,column,row):
-    board[column][row] = LINE
+    if round != -1:
+        print("round:",round)
+def add_line(board,column,row):
+    if board[column-1][row] == LINE or  board[column+1][row] == LINE:
+        access = False
+    else:
+        access = True
+        board[column][row] = LINE
+    return board,access
+
+def result_print(board,player):
     for r in range(len(board[0])):
         for c in range(len(board)):
             if board[c][r] == LINE:
                 a = int(player[c])
                 player[c] = int(player[c+1])
                 player[c+1] = a
-                print("shd")
-    return player,board
+    print("\n---RESULT---\n")
+    for i in range(len(player)):
+        print(f"column {i+1}: P{player[i]+1}")
+    return player
+def COLUMN_print(pnum):
+    for i in range(pnum):
+        print(f"P{i+1}     ",end="")
+    print("")
