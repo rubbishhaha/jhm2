@@ -19,7 +19,7 @@ while round < max_round:
     while access == False:
         board,access = set.add_line(board,int(input("column:"))-1,int(input("row:"))-1)
         if access == False:
-            print("sorry! Line can not overlap with each other. Please try another line.")
+            print("sorry! Line can not overlap with each other or itself. Please try another line.")
     round += 1
 
 os.system('cls' if os.name == 'nt' else 'clear')

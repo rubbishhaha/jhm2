@@ -23,7 +23,28 @@ def board_show(board,round):
     if round != -1:
         print("round:",round)
 def add_line(board,column,row):
-    if board[column-1][row] == LINE or  board[column+1][row] == LINE:
+    if column != len(board):
+        if board[column-1][row] == LINE:
+            a1 = False
+        else:
+            a1 = True
+    else:
+        a1 = True
+
+    if column != 0:
+        if board[column+1][row] == LINE:
+            a2 = False
+        else:
+            a2 = True
+    else:
+        a2 = True
+
+    if board[column][row] == LINE:
+        a3 = False
+    else:
+        a3 = True    
+    
+    if  a1 or a2 or a3 == False:
         access = False
     else:
         access = True
