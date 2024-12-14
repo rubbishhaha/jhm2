@@ -1,11 +1,20 @@
 import set
 import time,os
 os.system('cls' if os.name == 'nt' else 'clear')
-pnum = int(input("  WELCOME TO GHOST LEG !\n\nPlease type the number of player:"))
-rnum = int(input("Please type the number of row:"))
-player = set.set_player(pnum)
-board  = set.set_board(pnum,rnum)
-max_round = int(input("Please type the number of round:"))
+inputing = True
+while inputing:
+    try:
+        pnum = int(input("  WELCOME TO GHOST LEG !\n\nPlease type the number of player:"))
+        rnum = int(input("Please type the number of row:"))
+        player = set.set_player(pnum)
+        board  = set.set_board(pnum,rnum)
+        max_round = int(input("Please type the number of round:"))
+        if max_round > pnum*rnum/2:
+            print("the number of round is too large, please try again")
+            break
+        inputing = False
+    except:
+        print("Invalid input. Please try again")
 
 os.system('cls' if os.name == 'nt' else 'clear')
 print("---GAME START---")
@@ -17,7 +26,14 @@ while round < max_round:
     set.board_show(board,round+1)
     access = False
     while access == False:
-        board,access = set.add_line(board,int(input("column:"))-1,int(input("row:"))-1)
+        try:
+            board,access = set.add_line(board,int(input("column:"))-1,int(input("row:"))-1)
+        except:
+            stop = input("Invalid input. Please try again")
+            if stop == "n":
+                round += 10000
+                access = True
+                print("sodnf")
         if access == False:
             print("sorry! Line can not overlap with each other or itself. Please try another line.")
     round += 1
