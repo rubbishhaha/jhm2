@@ -31,9 +31,8 @@ while round < max_round:
         except:
             stop = input("Invalid input. Please try again")
             if stop == "n":
-                round += 10000
+                round += 100000000
                 access = True
-                print("sodnf")
         if access == False:
             print("sorry! Line can not overlap with each other or itself. Please try another line.")
     round += 1
