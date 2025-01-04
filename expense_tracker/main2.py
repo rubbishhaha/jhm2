@@ -50,8 +50,6 @@ def plot(dataset):
     plt.show()
 
 
-
-
 while choice != 4:
     os.system('cls' if os.name == 'nt' else 'clear')
     if rerun == False:

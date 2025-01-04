@@ -9,7 +9,7 @@ while inputing:
         player = set.set_player(pnum)
         board  = set.set_board(pnum,rnum)
         max_round = int(input("Please type the number of round:"))
-        if max_round > pnum*rnum/2:
+        if max_round > pnum*rnum/3:
             print("the number of round is too large, please try again")
             break
         inputing = False

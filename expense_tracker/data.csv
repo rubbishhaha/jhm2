@@ -1,4 +1,8 @@
 date,category,amount,t_type
-2024-11-30,food,-5,expense
+2025-01-04,rent,-3000,expense
+2025-01-04,food,-45,expense
 2024-11-30,food,-30,expense
+2025-01-04,present,-23,expense
+2025-01-04,food,-20,expense
+2024-11-30,food,-5,expense
 2024-11-29,transport,-5,expense
