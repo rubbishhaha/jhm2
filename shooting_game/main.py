@@ -12,6 +12,7 @@ class game:
         self.close_window = False
         self.status = "menu"
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
+        self.time = 0
 
         self.UI_sprite = pygame.sprite.LayeredUpdates()
         self.main_sprite = pygame.sprite.LayeredUpdates()
@@ -39,9 +40,19 @@ class game:
     def update(self):
         self.main_sprite.update()
         self.sp_sprite.update()
+        self.sprite_exist()
+        self.enemy_spawn()
+        self.time += 1
+    def enemy_spawn(self):
+        if self.time%(2*30) == 0:
+            sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(50,50),health=100)
+
+    def sprite_exist(self):
         for sprite in self.all_sprite:
-            if sprite.exist == False:
+            if sprite.asdf == False:
                 sprite.kill()
+            if sprite.exist == False:
+                sprite.asdf = False
     def draw(self):
         self.bg.blit(self.bg_image, (0, 0,600,600))
         self.main_sprite.draw(self.bg)
