@@ -1,8 +1,6 @@
 import pygame
-import sys
 from pygame.locals import *
-import numpy as np
-from setting import *
+from config import *
 from sprite import *
 
 class game:
@@ -13,6 +11,7 @@ class game:
         self.status = "menu"
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
         self.time = 0
+        pygame.display.set_caption("cnmb nigger")
 
         self.UI_sprite = pygame.sprite.LayeredUpdates()
         self.main_sprite = pygame.sprite.LayeredUpdates()
@@ -27,7 +26,7 @@ class game:
         self.event()
         self.draw()
         self.update()
-        self.FPS.tick(30)
+        self.FPS.tick(FPS)
         pygame.display.update()
     def event(self):
         for event in pygame.event.get():
@@ -44,8 +43,14 @@ class game:
         self.enemy_spawn()
         self.time += 1
     def enemy_spawn(self):
-        if self.time%(2*30) == 0:
-            sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(50,50),health=100)
+        if self.time%(ENEMY_SPAWN_RATE*FPS) == 0:
+            self.a1 = random.randint(0,2)
+            if self.a1 == 0:
+                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(100,100),health=150,speed=1),
+            elif self.a1 == 1:
+                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4),
+            elif self.a1 == 2:
+                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(50,50),health=70,speed=2,shooting=True,bullet="sim_bullet")
 
     def sprite_exist(self):
         for sprite in self.all_sprite:
@@ -82,4 +87,3 @@ while game_state.close_window == False:
     
 
 pygame.quit()
-sys.exit()

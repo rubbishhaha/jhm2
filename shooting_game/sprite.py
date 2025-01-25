@@ -1,11 +1,7 @@
 import pygame
-import sys
 from pygame.locals import *
 import math
-import pygame.docs
-import pygame.docs.generated
-import pygame.docs.generated._images
-from setting import *
+from config import *
 import random
 
 class player(pygame.sprite.Sprite):
@@ -132,9 +128,10 @@ class sim_bullet(pygame.sprite.Sprite):
         for i,val in kwargs.items():
             self.arg_dict[i] = val
         self._layer = FX_LAYER 
+        self.groups = groups
         pygame.sprite.Sprite.__init__(self,groups)
 
-        target(self)
+        targeting(self)
 
         self.velocity = [self.arg_dict["speed"]*math.cos(math.radians(self.arg_dict["direction"])),-self.arg_dict["speed"]*math.sin(math.radians(self.arg_dict["direction"]))]
         self.image = pygame.transform.rotate(self.image,self.arg_dict["direction"])
@@ -157,18 +154,22 @@ class sim_bullet(pygame.sprite.Sprite):
             self.explosion()
         else:
             self.exist = False
-
+def targeting(self):
+    print(self.game)
+    self.oiuy = self.game.main_enemy_sprite
+    self.poiu = self.game.main_teammate_sprite
+    
+    if self.oiuy.has(self):
+        self.target = self.game.main_teammate_sprite
+    elif self.poiu.has(self):
+        self.target = self.game.main_enemy_sprite
         
 def rect_in_game_area(rect):
     if rect[0] > b + 100 or rect[0] < -100 or rect[1] > h + 100 or rect[1] < -100:
         return False
     else:
         return True
-def target(self):
-    if pygame.sprite.Group.has(self.game.main_teammate_sprite,self):
-        self.target = self.game.main_enemy_sprite
-    elif pygame.sprite.Group.has(self.game.main_enemy_sprite,self):
-        self.target = self.game.main_teammate_sprite
+
 def get_hit(self,**kwarg):
     return pygame.sprite.spritecollide(self, self.target,False)
 
@@ -176,22 +177,28 @@ class sim_enemy(pygame.sprite.Sprite):
     def __init__(self,game,png,init_pos,scale,**kwargs):
         self.exist = True
         self.asdf = True
-        self.image = pygame.transform.scale(pygame.image.load(png),[30,30]).convert()
+        self.image = pygame.transform.scale(pygame.image.load(png),scale).convert()
         self.image.set_colorkey(BLACK)
         self.game = game
+        self.time = 0
         self.arg_dict = {
             "direction":270,
             "speed":1,
             "shooting":False,
-            "health":20
+            "health":20,
+            "moving":"straight_line",
+            "sines":False,
+            "shooting":True,
+            "bullet":None
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
         self._layer = ENEMY_LAYER 
-        self.groups = game.all_sprite,game.main_sprite,game.main_enemy_sprite
+        print(self.game)
+        self.groups = [game.all_sprite,game.main_sprite,game.main_enemy_sprite]
         pygame.sprite.Sprite.__init__(self,self.groups)
 
-        target(self)
+        targeting(self)
 
         self.velocity = [self.arg_dict["speed"]*math.cos(math.radians(self.arg_dict["direction"])),-self.arg_dict["speed"]*math.sin(math.radians(self.arg_dict["direction"]))]
         self.image = pygame.transform.rotate(self.image,self.arg_dict["direction"])
@@ -201,9 +208,15 @@ class sim_enemy(pygame.sprite.Sprite):
         self.move()
         if get_hit(self):
             self.hit()
+        if self.arg_dict["shooting"]:
+            self.shooting()
+        self.time += 1
     def move(self):
         self.rect[0] += self.velocity[0]
         self.rect[1] += self.velocity[1]
+        if self.arg_dict["moving"] == "sine_curve":
+            self.rect[0] += self.arg_dict["sines"][0]*math.sin(self.game.time*self.arg_dict["sines"][1])
+
         if rect_in_game_area(self.rect) == False:
             self.exist = False
     def hit(self):
@@ -211,7 +224,11 @@ class sim_enemy(pygame.sprite.Sprite):
         if self.health <= 0:
             self.exist = False
             fx_wave(self.game,self.rect.center,50,250,0.5,RED)
-
+    def shooting(self):
+        if self.time%(ENEMY_SHOOTING_RATE*FPS) == 0:
+            if self.arg_dict["bullet"] == "sim_bullet":
+                sim_bullet(self.game,"asset/player_mode1_bullet.png",self.rect.center, (286*PLAYER_BULLET_RADIO,37*PLAYER_BULLET_RADIO),self.groups,speed=10,direction=180)
+        
 class fx_wave(pygame.sprite.Sprite):
     def __init__(self,game,pos,i_s,t_s,t,color):
         self.game = game
@@ -221,7 +238,7 @@ class fx_wave(pygame.sprite.Sprite):
         self._age.set_colorkey(BLACK)
         self._age.fill(color, special_flags=pygame.BLEND_RGBA_MIN)
         self.image = pygame.transform.scale(self._age, (0,0))
-        self.count = 0
+        self.time = 0
         self.frame = t*30
         self._layer = FX_LAYER 
         self.groups = game.all_sprite,game.main_sprite
@@ -231,14 +248,14 @@ class fx_wave(pygame.sprite.Sprite):
         self.i_s = i_s
         self.scale_speed = (t_s-i_s)/self.frame
     def update(self, *args, **kwargs):
-        self.image = pygame.transform.scale(self._age,(self.count*self.scale_speed+self.i_s,self.count*self.scale_speed+self.i_s))
-        self.image.set_alpha(255*(1-self.count/self.frame))
+        self.image = pygame.transform.scale(self._age,(self.time*self.scale_speed+self.i_s,self.time*self.scale_speed+self.i_s))
+        self.image.set_alpha(255*(1-self.time/self.frame))
         self.rect[0] -= self.scale_speed/2
         self.rect[1] -= self.scale_speed/2
         #self.game.bg.blit(self.image,self.rect)
         #pygame.draw.rect(self.game.bg, BLUE, self.rect, 2)
-        self.count += 1
-        if self.count > self.frame:
+        self.time += 1
+        if self.time > self.frame:
             self.exist = False
         
         
