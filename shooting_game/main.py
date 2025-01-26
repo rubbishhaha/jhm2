@@ -43,14 +43,15 @@ class game:
         self.enemy_spawn()
         self.time += 1
     def enemy_spawn(self):
-        if self.time%(ENEMY_SPAWN_RATE*FPS) == 0:
+        sim_enemy(self,"asset/sine_enemy.png",(random.randint(0,600),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4,type="sine_enemy"),
+        if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0:
             self.a1 = random.randint(0,2)
             if self.a1 == 0:
-                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(100,100),health=150,speed=1),
+                sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,600),-49),(100,100),health=150,speed=1,type="heavy_enemy"),
             elif self.a1 == 1:
-                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4),
+                sim_enemy(self,"asset/sine_enemy.png",(random.randint(0,600),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4,type="sine_enemy"),
             elif self.a1 == 2:
-                sim_enemy(self,"asset/sim_enemy.png",(random.randint(0,600),-49),(50,50),health=70,speed=2,shooting=True,bullet="sim_bullet")
+                sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,600),-49),(50,50),health=70,speed=2,shooting=True,bullet="sim_bullet",type="shooting_enemy")
 
     def sprite_exist(self):
         for sprite in self.all_sprite:
