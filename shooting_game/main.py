@@ -9,6 +9,7 @@ class game:
         self.bg = pygame.display.set_mode((b,h))
         self.FPS = pygame.time.Clock()
         self.close_window = False
+        self.init = True
         self.status = "ui"
         self.free_random = 0
         pygame.display.set_caption("simple shooting game")
@@ -21,9 +22,15 @@ class game:
     
     def main__init__(self):
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
+        self.player_health_image = [pygame.transform.scale(pygame.image.load("asset/health_normal.png"),PLAYER_HEALTH_IMAGE_SIZE),pygame.transform.scale(pygame.image.load("asset/health_damaged.png"),PLAYER_HEALTH_IMAGE_SIZE)]
         self.player = player(self,"asset/player.png",(300,400))
+        for i in range(PLAYER_MAXIMUM_HEALTH):
+            player_health(self,i+1)
+        score(self)
         self.time = 0
         self.free_random = 0
+        self.score = 0
+        self.a2 = 0
     def main__term__(self):
         self.main_sprite.empty()
         self.all_sprite.empty()
@@ -56,7 +63,7 @@ class game:
             self.a1 = random.randint(0,5)
             match self.a1:
                 case 0:
-                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy"),
+                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy",score=30),
                 case 1:
                     sim_enemy(self,"asset/sine_enemy.png",(random.randint(0,b),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4,type="sine_enemy"),
                 case 2:
@@ -71,6 +78,11 @@ class game:
     def sprite_exist(self):
         for sprite in self.main_sprite:
             if sprite.asdf == False:
+                if sprite in self.main_enemy_sprite:
+                    self.score += sprite.arg_dict["score"]
+                    if math.floor(self.score/HEALTH_GIVEN_SCORE) > self.a2:
+                        sim_enemy(self,"asset/health_normal.png",(random.randint(0,b),-49),(50,50),health=1,speed=3,type="heart",rotation=90)
+                        self.a2 = math.floor(self.score/HEALTH_GIVEN_SCORE)
                 sprite.kill()
             if sprite.exist == False:
                 sprite.asdf = False
@@ -92,7 +104,12 @@ class game:
         pygame.display.update()
     def UI__init__(self):
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
-        self.bg_image.blit(pygame.image.load("asset/shoot_only.png"),(40,200))
+        if self.init == True:
+            self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
+            self.bg_image.blit(pygame.image.load("asset/shoot_only.png"),(40,200))
+        else:
+            self.bg_image = pygame.transform.smoothscale(pygame.transform.smoothscale(self.bg,(BACKGROUND_BLUR_RATE,BACKGROUND_BLUR_RATE)),(b,h))
+            self.bg_image.blit(pygame.image.load("asset/wasted.png"),(134,200))
         option(self,[180,400,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2)
         self.bluring_time = 0
     def UI__term__(self):
@@ -133,11 +150,11 @@ class enemy_spawner():
 
     def sine_enemy_team(self):
         self.free_random = random.randint(0,b)
-        enemy_spawner.continous_spawning_appending(sim_enemy,[self,"asset/sine_enemy.png",(self.free_random,-49),(30,30),{"health":20,"moving":"sine_curve","sines":[8,0.07],"speed":4,"type":"sine_enemy"}],3,10)
+        enemy_spawner.continous_spawning_appending(sim_enemy,[self,"asset/sine_enemy.png",(self.free_random,-49),(30,30),{"health":20,"moving":"sine_curve","sines":[8,0.07],"speed":4,"type":"sine_enemy","score":4}],3,10)
     def plain_trapper(self):
         sim_enemy(self,"asset/trapper_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=3,shooting=True,shooting_method="poly",shooting_method_c1=[2,0,180],bullet="lazer",bullet_arg={"speed":80,"hit_function":"invincible"},shooting_rate=15,type="shooting_enemy")
     def shotgun_shooter(self):
-        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy")
+        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",score=40)
 
 pygame.init()
 game_state = game()

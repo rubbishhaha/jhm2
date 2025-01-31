@@ -8,8 +8,8 @@ class player(pygame.sprite.Sprite):
     def __init__(self,game,png,init_pos,**kwargs):
         self.exist = True
         self.asdf = True
+        self.end_game = False
         self.init_image = pygame.transform.scale(pygame.image.load(png),[30,30]).convert()
-        self.init_image.set_alpha(PLAYER_TRANSPARENT_CONSTANT)
         self.image = self.init_image
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect(topleft=init_pos)
@@ -19,6 +19,7 @@ class player(pygame.sprite.Sprite):
         self._layer = PLAYER_LAYER 
         self.groups = [game.all_sprite,game.main_sprite,game.main_teammate_sprite]
         pygame.sprite.Sprite.__init__(self,self.groups)
+        targeting(self)
 
         self.velocity = [0,0]
         self.rotat = 0
@@ -26,13 +27,44 @@ class player(pygame.sprite.Sprite):
         self.dodge_cd = 0
         self.weapon_mode = 1
         self.damage = 0
+        self.health = PLAYER_MAXIMUM_HEALTH
+        self.invincible_time = 0
+        self.a6 = 0
+        self.a7 = False
 
     def update(self, *args, **kwargs):
+        if self.end_game == True:    
+            self.game.status = "ui"
+            self.game.init = False
         self.move()
         self.rotat = self.rotation(self.velocity[0],self.velocity[1],self.rotat,self.speed)
         self.image_process()
         self.shoot(self.rect,self.weapon_mode)
-
+        if get_hit(self) and self.invincible_time <= 0:
+            self.health_deduction()
+        self.invincible_deduce()
+    def invincible_deduce(self):
+        if self.invincible_time > 0:
+            if self.a6 == 10:
+                self.a6 = 0
+            elif self.a6 >= 5:
+                self.image.set_alpha(PLAYER_TRANSPARENT_CONSTANT)
+            self.a6 += 1
+            self.invincible_time += -1
+    def health_deduction(self):
+        self.health += -1
+        self.invincible_time = PLAYER_INVINCIBLE_TIME
+        self.a6 = 0
+        self.dodge_cd = 0
+        self.a7 = True
+        self.fail_deduce()
+    
+    def fail_deduce(self):
+        if self.end_game == True:    
+            self.game.status = "ui"
+            self.game.init = False
+        if self.health == 0:
+            self.end_game = True
     def image_process(self):
         self.image , self.rect = self.animation(self.init_image,self.rotat,self.init_rect,self.rect,self.speed)
 
@@ -54,14 +86,16 @@ class player(pygame.sprite.Sprite):
             if len(self.com) < 2:
                 self.com += "d"
             self.velocity[0] += PLAYER_SPEED if self.velocity[0] < PLAYER_MAXIMUM_SPEED and self.speed < PLAYER_MAXIMUM_SPEED else 0
-        if self.game.command[K_SPACE]:
-            if self.dodge_cd == 0:
+        if self.game.command[K_SPACE] or self.a7 == True:
+            if self.dodge_cd == 0 or self.a7 == True:
+                self.a7 = False
                 if self.com == "":
                     self.velocity[0] = PLAYER_DODGE_SPEED*math.cos(math.radians(self.r2))
                     self.velocity[1] = -PLAYER_DODGE_SPEED*math.sin(math.radians(self.r2))
                 else:
                     if self.com in DODGE_DICT:
                         self.velocity = DODGE_DICT[self.com]
+                self.invincible_time = 5 if self.invincible_time < 5 else self.invincible_time
                 self.dodge_cd = 10
         if self.dodge_cd > 0:
             self.dodge_cd += -1
@@ -123,7 +157,9 @@ class sim_bullet(pygame.sprite.Sprite):
             "direction":90,
             "hit_function": "explosion",
             "speed":10,
-            "tracking":False
+            "tracking":False,
+            "score":0
+
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
@@ -180,11 +216,10 @@ class sim_enemy(pygame.sprite.Sprite):
     def __init__(self,game,png,init_pos,scale,**kwargs):
         self.exist = True
         self.asdf = True
-        self.image = pygame.transform.scale(pygame.image.load(png),scale).convert()
-        self.image.set_colorkey(BLACK)
         self.game = game
         self.time = 0
         self.arg_dict = {
+            "rotation":0,
             "direction":270,
             "speed":1,
             "shooting":False,
@@ -196,10 +231,13 @@ class sim_enemy(pygame.sprite.Sprite):
             "bullet":None,
             "bullet_arg":None,
             "shooting_rate":ENEMY_SHOOTING_RATE,
-            "type":"sim_enemy"
+            "type":"sim_enemy",
+            "score":20
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
+        self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(png),scale),self.arg_dict["rotation"]).convert()
+        self.image.set_colorkey(BLACK)
         self._layer = ENEMY_LAYER 
         self.groups = [game.all_sprite,game.main_sprite,game.main_enemy_sprite]
         pygame.sprite.Sprite.__init__(self,self.groups)
@@ -233,6 +271,9 @@ class sim_enemy(pygame.sprite.Sprite):
             self.health += -i.damage
             if self.health <= 0:
                 self.exist = False
+                if self.arg_dict["type"] == "heart":
+                    self.game.player.health += 1 if self.game.player.health < 5 else 0
+                    fx_wave(self.game,self.rect.center,50,500,2,GREEN)
                 fx_wave(self.game,self.rect.center,50,250,0.5,RED)
     def shooting(self):
             match self.arg_dict["bullet"]:
@@ -364,5 +405,42 @@ class option(pygame.sprite.Sprite):
                 self.a1 = (OPTION_APPEAR_TIME-self.appear_time)/OPTION_APPEAR_TIME
                 self.image = pygame.transform.scale(self.r_image,(self.r_rect[2]*self.a1,self.r_rect[3]*self.a1))
                 self.appear_time += -1
-    
+class player_health(pygame.sprite.Sprite):
+    def __init__(self,game,num):
+        self.asdf = True
+        self.exist = True
+        self.game = game
+        self.image = self.game.player_health_image[0]
+        self.num = num
+        self.rect = pygame.Rect(PLAYER_HEALTH_IMAGE_SIZE[1]*(self.num-1),0,*PLAYER_HEALTH_IMAGE_SIZE)
+        self.a1 = 0
+        self._layer = UI_LAYER 
+        self.groups = game.all_sprite,game.main_sprite
+        pygame.sprite.Sprite.__init__(self,self.groups)
+    def update(self, *args, **kwargs):
+        self.player_health = self.game.player.health
+        if self.a1 == 0:
+            if self.player_health < self.num:
+                self.image = self.game.player_health_image[1]
+                self.a1 = 1
+        if self.a1 == 1:
+            if self.player_health >= self.num:
+                self.image = self.game.player_health_image[0]
+                self.a1 = 0
+class score(pygame.sprite.Sprite):
+    def __init__(self,game):
+        self.asdf = True
+        self.exist = True
+        self.game = game
+        self.rect = pygame.Rect(380,0,1,1)
+        self.font = pygame.font.Font('freesansbold.ttf', 32)
+        self.image = self.font.render('Score:000000', True, WHITE)
+        self._layer = UI_LAYER 
+        self.groups = game.all_sprite,game.main_sprite
+        pygame.sprite.Sprite.__init__(self,self.groups)
+        self.a1 = 0
+    def update(self):
+        if self.game.score != self.a1:
+            self.image = self.font.render(f"Score:{str("{:06d}".format(self.game.score))}", True, WHITE)
+            self.a1 = self.game.score
         
