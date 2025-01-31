@@ -53,18 +53,20 @@ class game:
     def enemy_spawn(self):
         enemy_spawner.continous_spawning_checking()
         if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0:
-            self.a1 = random.randint(0,4)
+            self.a1 = random.randint(0,5)
             match self.a1:
                 case 0:
-                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=150,speed=1,type="heavy_enemy"),
+                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy"),
                 case 1:
                     sim_enemy(self,"asset/sine_enemy.png",(random.randint(0,b),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4,type="sine_enemy"),
                 case 2:
-                    sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(50,50),health=70,speed=2,shooting=True,bullet="sim_bullet",bullet_arg={"speed":10,"direction":270},type="shooting_enemy")
+                    sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(50,50),health=50,speed=2,shooting=True,bullet="sim_bullet",bullet_arg={"speed":10,"direction":270},type="shooting_enemy")
                 case 3:
                     enemy_spawner.sine_enemy_team(self)
                 case 4:
                     enemy_spawner.plain_trapper(self)
+                case 5:
+                    enemy_spawner.shotgun_shooter(self)
 
     def sprite_exist(self):
         for sprite in self.main_sprite:
@@ -134,7 +136,8 @@ class enemy_spawner():
         enemy_spawner.continous_spawning_appending(sim_enemy,[self,"asset/sine_enemy.png",(self.free_random,-49),(30,30),{"health":20,"moving":"sine_curve","sines":[8,0.07],"speed":4,"type":"sine_enemy"}],3,10)
     def plain_trapper(self):
         sim_enemy(self,"asset/trapper_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=3,shooting=True,shooting_method="poly",shooting_method_c1=[2,0,180],bullet="lazer",bullet_arg={"speed":80,"hit_function":"invincible"},shooting_rate=15,type="shooting_enemy")
-
+    def shotgun_shooter(self):
+        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy")
 
 pygame.init()
 game_state = game()
