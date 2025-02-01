@@ -142,7 +142,7 @@ class player(pygame.sprite.Sprite):
         self.a5_rect = self.a4_Im.get_rect(topleft=nr.topleft)
         return self.a4_Im, self.a5_rect
     def shoot(self,rect,mode):
-        if self.game.mouse_pressed[0]:
+        if self.game.mouse_pressed[1][0]:
             if mode == 1:
                 random_rect = rect.copy()
                 random_rect.move_ip(random.randint(-30,30),random.randint(-30,30))
@@ -232,11 +232,14 @@ class sim_enemy(pygame.sprite.Sprite):
             "bullet_arg":None,
             "shooting_rate":ENEMY_SHOOTING_RATE,
             "type":"sim_enemy",
-            "score":20
+            "score":20,
+            "color":None
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
         self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(png),scale),self.arg_dict["rotation"]).convert()
+        if self.arg_dict["color"] != None:
+            self.image.fill(self.arg_dict["color"], special_flags=pygame.BLEND_RGBA_MIN)
         self.image.set_colorkey(BLACK)
         self._layer = ENEMY_LAYER 
         self.groups = [game.all_sprite,game.main_sprite,game.main_enemy_sprite]

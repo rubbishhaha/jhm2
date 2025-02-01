@@ -43,15 +43,18 @@ class game:
         self.FPS.tick(FPS)
         pygame.display.update()
     def event(self):
+        self.mouse_pressed = [False,None]
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.close_window = True
             elif event.type == pygame.KEYDOWN:
                 if event.key==K_ESCAPE:
                     self.ESC_get_pressed()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                self.mouse_pressed[0] = True
         self.command = pygame.key.get_pressed()
         self.mouse_codr = pygame.mouse.get_pos()
-        self.mouse_pressed = pygame.mouse.get_pressed()
+        self.mouse_pressed[1] = pygame.mouse.get_pressed()
     def main_update(self):
         self.main_sprite.update()
         self.sprite_exist()
@@ -63,11 +66,11 @@ class game:
             self.a1 = random.randint(0,5)
             match self.a1:
                 case 0:
-                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy",score=30),
+                    sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy",score=30,color=YELLOW),
                 case 1:
                     sim_enemy(self,"asset/sine_enemy.png",(random.randint(0,b),-49),(30,30),health=20,moving="sine_curve",sines=[8,0.2],speed=4,type="sine_enemy"),
                 case 2:
-                    sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(50,50),health=50,speed=2,shooting=True,bullet="sim_bullet",bullet_arg={"speed":10,"direction":270},type="shooting_enemy")
+                    sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(50,50),health=50,speed=2,shooting=True,bullet="sim_bullet",bullet_arg={"speed":10,"direction":270},type="shooting_enemy",color=GREEN   )
                 case 3:
                     enemy_spawner.sine_enemy_team(self)
                 case 4:
@@ -154,7 +157,7 @@ class enemy_spawner():
     def plain_trapper(self):
         sim_enemy(self,"asset/trapper_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=3,shooting=True,shooting_method="poly",shooting_method_c1=[2,0,180],bullet="lazer",bullet_arg={"speed":80,"hit_function":"invincible"},shooting_rate=15,type="shooting_enemy")
     def shotgun_shooter(self):
-        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",score=40)
+        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",color=BLUE,score=40)
 
 pygame.init()
 game_state = game()
