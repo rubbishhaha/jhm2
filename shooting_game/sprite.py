@@ -24,13 +24,17 @@ class player(pygame.sprite.Sprite):
         self.velocity = [0,0]
         self.rotat = 0
         self.speed = 0
-        self.dodge_cd = 0
         self.weapon_mode = 1
         self.damage = 0
         self.health = PLAYER_MAXIMUM_HEALTH
         self.invincible_time = 0
         self.a6 = 0
         self.a7 = False
+        self.cd_dict = {
+            "bullet":[PLAYER_MODE1_SHOOTING_CD,0],
+            "tracking_bullet":[PLAYER_MODE2_SHOOTING_CD,0],
+            "dodge":[PLAYER_DODGE_CD,0]
+        }
 
     def update(self, *args, **kwargs):
         if self.end_game == True:    
@@ -42,8 +46,8 @@ class player(pygame.sprite.Sprite):
         self.shoot(self.rect,self.weapon_mode)
         if get_hit(self) and self.invincible_time <= 0:
             self.health_deduction()
-        self.invincible_deduce()
-    def invincible_deduce(self):
+        self.cd_deduce()
+    def cd_deduce(self):
         if self.invincible_time > 0:
             if self.a6 == 10:
                 self.a6 = 0
@@ -51,11 +55,13 @@ class player(pygame.sprite.Sprite):
                 self.image.set_alpha(PLAYER_TRANSPARENT_CONSTANT)
             self.a6 += 1
             self.invincible_time += -1
+        for i in self.cd_dict.values():
+            i[1] += -1 if i[1] > 0 else 0
+        
     def health_deduction(self):
         self.health += -1
         self.invincible_time = PLAYER_INVINCIBLE_TIME
         self.a6 = 0
-        self.dodge_cd = 0
         self.a7 = True
         self.fail_deduce()
     
@@ -87,7 +93,7 @@ class player(pygame.sprite.Sprite):
                 self.com += "d"
             self.velocity[0] += PLAYER_SPEED if self.velocity[0] < PLAYER_MAXIMUM_SPEED and self.speed < PLAYER_MAXIMUM_SPEED else 0
         if self.game.command[K_SPACE] or self.a7 == True:
-            if self.dodge_cd == 0 or self.a7 == True:
+            if self.cd_dict["dodge"][1] == 0 or self.a7 == True:
                 self.a7 = False
                 if self.com == "":
                     self.velocity[0] = PLAYER_DODGE_SPEED*math.cos(math.radians(self.r2))
@@ -96,9 +102,7 @@ class player(pygame.sprite.Sprite):
                     if self.com in DODGE_DICT:
                         self.velocity = DODGE_DICT[self.com]
                 self.invincible_time = 5 if self.invincible_time < 5 else self.invincible_time
-                self.dodge_cd = 10
-        if self.dodge_cd > 0:
-            self.dodge_cd += -1
+                self.cd_dict["dodge"][1] = self.cd_dict["dodge"][0]
         self.velocity = [i*0.8 if abs(i) > 0.1 else 0 for i in self.velocity]
         self.rect[0] += round(self.velocity[0])
         self.rect[1] += round(self.velocity[1])
@@ -112,16 +116,9 @@ class player(pygame.sprite.Sprite):
             self.rect.centery = h-5
         self.speed = math.sqrt(math.pow(self.velocity[0],2) + math.pow(self.velocity[1],2))
     def rotation(self,vx,vy,r,s):
-        if vx == 0:
-            if vy == 0:
-                self.r2 = r
-            else:
-                self.r2 = 270 if vy > 0 else 90
-        elif vy == 0:
-            self.r2 = 0 if vx > 0 else 180
-        else:
-            self.r2 = math.degrees(math.atan2(vx,vy)) - 90 # if vx >= 0 else -90 + math.degrees(math.atan2(vy,vx))
-
+        self.r2 = find_direction(vx,vy)
+        if self.r2 == None:
+            self.r2 = r
         if abs(self.r2-r) < abs(self.r2-r-360) and abs(self.r2-r) < abs(self.r2-r+360):
             self.a2 = self.r2-r
         elif abs(self.r2-r-360) > abs(self.r2-r+360):
@@ -144,9 +141,13 @@ class player(pygame.sprite.Sprite):
     def shoot(self,rect,mode):
         if self.game.mouse_pressed[1][0]:
             if mode == 1:
-                random_rect = rect.copy()
-                random_rect.move_ip(random.randint(-30,30),random.randint(-30,30))
-                sim_bullet(self.game,"asset/player_mode1_bullet.png",random_rect.center, (286*PLAYER_BULLET_RADIO,37*PLAYER_BULLET_RADIO),self.groups,4,speed=40)
+                self.random_rect = rect.copy()
+                self.random_rect.move_ip(random.randint(-30,30),random.randint(-30,30))
+                sim_bullet(self.game,"asset/player_mode1_bullet.png",self.random_rect.center, (286*PLAYER_BULLET_RADIO,37*PLAYER_BULLET_RADIO),self.groups,4,speed=40)
+            if mode == 2 and self.cd_dict["tracking_bullet"][1] == 0:
+                for i in range(PLAYER_BULLET_NUM_MODE2):
+                    sim_bullet(self.game,"asset/enemy_bullet.png",self.rect.center, (256*ENEMY_BULLET_RADIO,256*ENEMY_BULLET_RADIO),self.groups,10,speed=10,tracking=True,direction=i*80)
+                    self.cd_dict["tracking_bullet"][1] = self.cd_dict["tracking_bullet"][0]
 class sim_bullet(pygame.sprite.Sprite):
     def __init__(self, game, png, init_pos, scale, groups,damage,**kwargs):
         self.exist = True
@@ -158,24 +159,33 @@ class sim_bullet(pygame.sprite.Sprite):
             "hit_function": "explosion",
             "speed":10,
             "tracking":False,
+            "tracking_rotation":TRACKING_BULLET_ROTATION,
             "score":0
 
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
+            self.direction = self.arg_dict["direction"]
         self._layer = FX_LAYER
         self.groups = groups
         pygame.sprite.Sprite.__init__(self,groups)
 
         targeting(self)
 
-        self.velocity = [self.arg_dict["speed"]*math.cos(math.radians(self.arg_dict["direction"])),-self.arg_dict["speed"]*math.sin(math.radians(self.arg_dict["direction"]))]
-        self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(png),scale),self.arg_dict["direction"]).convert()
+        self.velocity = find_velocity(self.arg_dict["speed"],self.direction)
+        if self.arg_dict["tracking"]:
+            self.image = pygame.transform.scale(pygame.image.load(png),scale).convert()
+        else:
+            self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(png),scale),self.direction).convert()
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect(center=init_pos)
 
     def update(self, *args, **kwargs):
         self.move()
+        if self.arg_dict["tracking"]:
+            track(self,self.game.mouse_codr)
+            self.arg_dict["speed"] += 1
+            self.arg_dict["tracking_rotation"] += -0.2
         if get_hit(self):
             self.hit()
     def move(self):
@@ -192,6 +202,21 @@ class sim_bullet(pygame.sprite.Sprite):
                 self.explosion()
             case "invincible":
                 pass
+
+def track(self,target):
+    target_dir = find_direction(target[0]-self.rect[0],target[1]-self.rect[1])
+    if target_dir == None:
+        pass
+    else:
+        a1 = degree_normalize(self.direction - target_dir)
+        if a1 > 180:
+            self.direction += TRACKING_BULLET_ROTATION
+        elif a1 == 0:
+            pass
+        else:
+            self.direction += -TRACKING_BULLET_ROTATION
+        self.direction = degree_normalize(self.direction)
+        self.velocity = find_velocity(self.arg_dict["speed"],self.direction)
 def targeting(self):
     if self.game.main_enemy_sprite.has(self):
         self.target = self.game.main_teammate_sprite
@@ -208,7 +233,24 @@ def rect_in_game_area_y(rect):
         return False
     else:
         return True
-
+def degree_normalize(degree):
+    while degree > 360:
+        degree += -360
+    while degree < 0:
+        degree += 360
+    return degree
+def find_velocity(speed,direction):
+    return [speed*math.cos(math.radians(direction)),-speed*math.sin(math.radians(direction))]
+def find_direction(vx,vy):
+        if vx == 0:
+            if vy == 0:
+                r2 = None
+            r2 = 270 if vy > 0 else 90
+        elif vy == 0:
+            r2 = 0 if vx > 0 else 180
+        else:
+            r2 = math.degrees(math.atan2(vx,vy)) - 90
+        return r2
 def get_hit(self,**kwarg):
     return pygame.sprite.spritecollide(self, self.target,False)
 
@@ -272,12 +314,13 @@ class sim_enemy(pygame.sprite.Sprite):
     def hit(self):
         for i in get_hit(self):
             self.health += -i.damage
-            if self.health <= 0:
-                self.exist = False
-                if self.arg_dict["type"] == "heart":
-                    self.game.player.health += 1 if self.game.player.health < 5 else 0
-                    fx_wave(self.game,self.rect.center,50,500,2,GREEN)
-                fx_wave(self.game,self.rect.center,50,250,0.5,RED)
+        if self.health <= 0:
+            self.exist = False
+            if self.arg_dict["type"] == "heart":
+                self.game.player.health += 1 if self.game.player.health < 5 else 0
+                fx_wave(self.game,self.rect.center,50,500,2,GREEN)
+                self.asdf = False
+            fx_wave(self.game,self.rect.center,50,250,0.5,RED)
     def shooting(self):
             match self.arg_dict["bullet"]:
                 case "sim_bullet":
@@ -402,6 +445,7 @@ class option(pygame.sprite.Sprite):
                 self.game.status = self.value
                 self.game.main__term__()
                 self.game.main__init__()
+                self.game.init = True
     def cg_in(self):
         match self.appear_method:
             case "boom":
@@ -436,14 +480,13 @@ class score(pygame.sprite.Sprite):
         self.exist = True
         self.game = game
         self.rect = pygame.Rect(380,0,1,1)
-        self.font = pygame.font.Font('freesansbold.ttf', 32)
-        self.image = self.font.render('Score:000000', True, WHITE)
+        self.image = self.game.font.render('Score:000000', True, WHITE)
         self._layer = UI_LAYER 
         self.groups = game.all_sprite,game.main_sprite
         pygame.sprite.Sprite.__init__(self,self.groups)
         self.a1 = 0
     def update(self):
         if self.game.score != self.a1:
-            self.image = self.font.render(f"Score:{str("{:06d}".format(self.game.score))}", True, WHITE)
+            self.image = self.game.font.render(f"Score:{str("{:06d}".format(self.game.score))}", True, WHITE)
             self.a1 = self.game.score
         

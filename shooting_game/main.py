@@ -12,6 +12,7 @@ class game:
         self.init = True
         self.status = "ui"
         self.free_random = 0
+        self.font = pygame.font.Font('freesansbold.ttf', 32)
         pygame.display.set_caption("simple shooting game")
 
         self.UI_sprite = pygame.sprite.LayeredUpdates()
@@ -64,7 +65,10 @@ class game:
         enemy_spawner.continous_spawning_checking()
         if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0:
             self.a1 = random.randint(0,5)
+            #self.a1 = -1
             match self.a1:
+                case -1:
+                    pass
                 case 0:
                     sim_enemy(self,"asset/heavy_enemy.png",(random.randint(0,b),-49),(100,100),health=100,speed=1,type="heavy_enemy",score=30,color=YELLOW),
                 case 1:
@@ -113,6 +117,7 @@ class game:
         else:
             self.bg_image = pygame.transform.smoothscale(pygame.transform.smoothscale(self.bg,(BACKGROUND_BLUR_RATE,BACKGROUND_BLUR_RATE)),(b,h))
             self.bg_image.blit(pygame.image.load("asset/wasted.png"),(134,200))
+            self.bg_image.blit(self.font.render(f"Final Score:{str("{:06d}".format(self.score))}", True, WHITE),(140,300))
         option(self,[180,400,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2)
         self.bluring_time = 0
     def UI__term__(self):
