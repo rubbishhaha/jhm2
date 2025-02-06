@@ -161,6 +161,7 @@ class sim_bullet(pygame.sprite.Sprite):
             "tracking":False,
             "tracking_rotation":TRACKING_BULLET_ROTATION,
             "target":"mouse",
+            "track_speed_increase":[1,-0.2],
             "score":0
 
         }
@@ -188,8 +189,8 @@ class sim_bullet(pygame.sprite.Sprite):
         self.move()
         if self.arg_dict["tracking"]:
             track(self,self.track_target)
-            self.arg_dict["speed"] += 1
-            self.arg_dict["tracking_rotation"] += -0.2
+            self.arg_dict["speed"] += self.arg_dict["track_speed_increase"][0]
+            self.arg_dict["tracking_rotation"] += self.arg_dict["track_speed_increase"][1] if self.arg_dict["tracking_rotation"] >= 0 else 0
         if get_hit(self):
             self.hit()
     def move(self):
@@ -214,11 +215,11 @@ def track(self,target):
     else:
         a1 = degree_normalize(self.direction - target_dir)
         if a1 > 180:
-            self.direction += TRACKING_BULLET_ROTATION
+            self.direction += self.arg_dict["tracking_rotation"]
         elif a1 == 0:
             pass
         else:
-            self.direction += -TRACKING_BULLET_ROTATION
+            self.direction += -self.arg_dict["tracking_rotation"]
         self.direction = degree_normalize(self.direction)
         self.velocity = find_velocity(self.arg_dict["speed"],self.direction)
 def targeting(self):

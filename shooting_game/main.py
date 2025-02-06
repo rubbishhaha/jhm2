@@ -29,6 +29,7 @@ class game:
             player_health(self,i+1)
         score(self)
         self.time = 0
+        self.spawn_cd = 0
         self.free_random = 0
         self.score = 0
         self.a2 = 0
@@ -65,10 +66,12 @@ class game:
         self.sprite_exist()
         self.enemy_spawn()
         self.time += 1
+        self.spawn_cd -= 1
     def enemy_spawn(self):
         enemy_spawner.continous_spawning_checking()
-        if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0:
-            self.a1 = random.randint(0,6)
+        if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0 and self.spawn_cd <= 0:
+            self.a1 = random.randint(0,7)
+            #self.a1 = random.randint(int(self.time/900),int(3+self.time/900))
             #self.a1 = -1
             match self.a1:
                 case -1:
@@ -87,6 +90,8 @@ class game:
                     enemy_spawner.shotgun_shooter(self)
                 case 6:
                     enemy_spawner.tracker(self)
+                case 7:
+                    enemy_spawner.little_boss(self)
 
     def sprite_exist(self):
         for sprite in self.main_sprite:
@@ -171,7 +176,9 @@ class enemy_spawner():
         sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",color=BLUE,score=40)
     def tracker(self):
         sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(60,60),health=10,speed=3,shooting=True,bullet_size=[128,128],bullet_arg={"speed":-5,"hit_function":"explosion","direction":270,"tracking":True,"tracking_rotation":2,"target":"player"},shooting_rate=1.5,type="shooting_enemy",color=RED,score=30)
-
+    def little_boss(self):
+        sim_enemy(self,"asset/heavy_enemy.png",(b/2,-100),(200,200),health=1800,speed=1,shooting=True,shooting_method="poly",shooting_method_c1=[20,0,18],bullet_size=[512,512],bullet_arg={"speed":10,"hit_function":"explosion","tracking":True,"tracking_rotation":15,"target":"player","track_speed_increase":[0.5,-0.4]},shooting_rate=1,type="boss",color=RED,score=1000)
+        self.spawn_cd = 500
 
 pygame.init()
 game_state = game()
