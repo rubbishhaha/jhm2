@@ -24,7 +24,7 @@ class player(pygame.sprite.Sprite):
         self.velocity = [0,0]
         self.rotat = 0
         self.speed = 0
-        self.weapon_mode = 1
+        self.weapon_mode = 2
         self.damage = 0
         self.health = PLAYER_MAXIMUM_HEALTH
         self.invincible_time = 0
@@ -160,12 +160,13 @@ class sim_bullet(pygame.sprite.Sprite):
             "speed":10,
             "tracking":False,
             "tracking_rotation":TRACKING_BULLET_ROTATION,
+            "target":"mouse",
             "score":0
 
         }
         for i,val in kwargs.items():
             self.arg_dict[i] = val
-            self.direction = self.arg_dict["direction"]
+        self.direction = self.arg_dict["direction"]
         self._layer = FX_LAYER
         self.groups = groups
         pygame.sprite.Sprite.__init__(self,groups)
@@ -179,11 +180,14 @@ class sim_bullet(pygame.sprite.Sprite):
             self.image = pygame.transform.rotate(pygame.transform.scale(pygame.image.load(png),scale),self.direction).convert()
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect(center=init_pos)
-
+        if self.arg_dict["target"] == "mouse":
+            self.track_target = self.game.mouse_codr 
+        elif self.arg_dict["target"] == "player":
+            self.track_target = self.game.player.rect.center
     def update(self, *args, **kwargs):
         self.move()
         if self.arg_dict["tracking"]:
-            track(self,self.game.mouse_codr)
+            track(self,self.track_target)
             self.arg_dict["speed"] += 1
             self.arg_dict["tracking_rotation"] += -0.2
         if get_hit(self):
@@ -268,10 +272,11 @@ class sim_enemy(pygame.sprite.Sprite):
             "health":20,
             "moving":"straight_line",
             "sines":False,
-            "shooting":True,
+            "shooting":False,
             "shooting_method":"",
-            "bullet":None,
-            "bullet_arg":None,
+            "bullet":"sim_bullet",
+            "bullet_size":[256,100],
+            "bullet_arg":{},
             "shooting_rate":ENEMY_SHOOTING_RATE,
             "type":"sim_enemy",
             "score":20,
@@ -324,9 +329,7 @@ class sim_enemy(pygame.sprite.Sprite):
     def shooting(self):
             match self.arg_dict["bullet"]:
                 case "sim_bullet":
-                    sim_bullet(self.game,"asset/enemy_bullet.png",self.rect.center, (256*ENEMY_BULLET_RADIO,100*ENEMY_BULLET_RADIO),self.groups,3,**self.arg_dict["bullet_arg"])
-                case "lazer":
-                    sim_bullet(self.game,"asset/enemy_bullet.png",self.rect.center, (8192*ENEMY_BULLET_RADIO,100*ENEMY_BULLET_RADIO),self.groups,1,**self.arg_dict["bullet_arg"])
+                    sim_bullet(self.game,"asset/enemy_bullet.png",self.rect.center, (self.arg_dict["bullet_size"][0]*ENEMY_BULLET_RADIO,self.arg_dict["bullet_size"][1]*ENEMY_BULLET_RADIO),self.groups,3,**self.arg_dict["bullet_arg"])
     def sp_action(self):
         if self.arg_dict["type"] == "sine_enemy":
             self.image = pygame.transform.rotate(self.i_image,6.28*self.arg_dict["sines"][0]*math.sin(self.time*self.arg_dict["sines"][1]))

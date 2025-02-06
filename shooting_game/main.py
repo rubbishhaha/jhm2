@@ -56,6 +56,10 @@ class game:
         self.command = pygame.key.get_pressed()
         self.mouse_codr = pygame.mouse.get_pos()
         self.mouse_pressed[1] = pygame.mouse.get_pressed()
+        if self.command[K_1]:
+            self.player.weapon_mode = 1
+        elif self.command[K_2]:
+            self.player.weapon_mode = 2
     def main_update(self):
         self.main_sprite.update()
         self.sprite_exist()
@@ -64,7 +68,7 @@ class game:
     def enemy_spawn(self):
         enemy_spawner.continous_spawning_checking()
         if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0:
-            self.a1 = random.randint(0,5)
+            self.a1 = random.randint(0,6)
             #self.a1 = -1
             match self.a1:
                 case -1:
@@ -81,6 +85,8 @@ class game:
                     enemy_spawner.plain_trapper(self)
                 case 5:
                     enemy_spawner.shotgun_shooter(self)
+                case 6:
+                    enemy_spawner.tracker(self)
 
     def sprite_exist(self):
         for sprite in self.main_sprite:
@@ -160,9 +166,12 @@ class enemy_spawner():
         self.free_random = random.randint(0,b)
         enemy_spawner.continous_spawning_appending(sim_enemy,[self,"asset/sine_enemy.png",(self.free_random,-49),(30,30),{"health":20,"moving":"sine_curve","sines":[8,0.07],"speed":4,"type":"sine_enemy","score":4}],3,10)
     def plain_trapper(self):
-        sim_enemy(self,"asset/trapper_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=3,shooting=True,shooting_method="poly",shooting_method_c1=[2,0,180],bullet="lazer",bullet_arg={"speed":80,"hit_function":"invincible"},shooting_rate=15,type="shooting_enemy")
+        sim_enemy(self,"asset/trapper_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=3,shooting=True,shooting_method="poly",shooting_method_c1=[2,0,180],bullet_size=[8192,100],bullet_arg={"speed":80,"hit_function":"invincible"},shooting_rate=15,type="shooting_enemy")
     def shotgun_shooter(self):
         sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",color=BLUE,score=40)
+    def tracker(self):
+        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(60,60),health=10,speed=3,shooting=True,bullet_size=[128,128],bullet_arg={"speed":-5,"hit_function":"explosion","direction":270,"tracking":True,"tracking_rotation":2,"target":"player"},shooting_rate=1.5,type="shooting_enemy",color=RED,score=30)
+
 
 pygame.init()
 game_state = game()
