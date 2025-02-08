@@ -20,11 +20,10 @@ class game:
         self.all_sprite = pygame.sprite.LayeredUpdates()
         self.main_enemy_sprite = pygame.sprite.Group()
         self.main_teammate_sprite = pygame.sprite.Group()
-    
     def main__init__(self):
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
         self.player_health_image = [pygame.transform.scale(pygame.image.load("asset/health_normal.png"),PLAYER_HEALTH_IMAGE_SIZE),pygame.transform.scale(pygame.image.load("asset/health_damaged.png"),PLAYER_HEALTH_IMAGE_SIZE)]
-        self.player = player(self,"asset/player.png",(300,400))
+        self.player = player(self,"asset/player.png",(b/2,h/2))
         for i in range(PLAYER_MAXIMUM_HEALTH):
             player_health(self,i+1)
         score(self)
@@ -70,7 +69,7 @@ class game:
     def enemy_spawn(self):
         enemy_spawner.continous_spawning_checking()
         if self.time%(round(FPS/ENEMY_SPAWN_RATE)) == 0 and self.spawn_cd <= 0:
-            self.a1 = random.randint(0,7)
+            self.a1 = random.randint(0,6)
             #self.a1 = random.randint(int(self.time/900),int(3+self.time/900))
             #self.a1 = -1
             match self.a1:
@@ -105,14 +104,14 @@ class game:
             if sprite.exist == False:
                 sprite.asdf = False
     def main_draw(self):
-        self.bg.blit(self.bg_image, (0, 0,600,600))
+        self.bg.blit(self.bg_image, (0, 0,b,h))
         self.main_sprite.draw(self.bg)
     def UI_draw(self):
         if self.bluring_time > 0:
             self.bluring_factor = self.bluring_time/OPTION_APPEAR_TIME
             self.bg_image = pygame.transform.smoothscale(pygame.transform.smoothscale(self.bg_image_copy,((b-BACKGROUND_BLUR_RATE)*self.bluring_factor,(h-BACKGROUND_BLUR_RATE)*self.bluring_factor)),(b,h))
             self.bluring_time += -1
-        self.bg.blit(self.bg_image, (0, 0,600,600))
+        self.bg.blit(self.bg_image, (0, 0,b,h))
         self.UI_sprite.draw(self.bg)
     def UI(self):
         self.event()
@@ -124,12 +123,12 @@ class game:
         self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
         if self.init == True:
             self.bg_image = pygame.transform.scale(pygame.image.load("asset/bg.png"),(b,h))
-            self.bg_image.blit(pygame.image.load("asset/shoot_only.png"),(40,200))
+            self.bg_image.blit(pygame.image.load("asset/shoot_only.png"),(b/2-260,h/2-100))
         else:
             self.bg_image = pygame.transform.smoothscale(pygame.transform.smoothscale(self.bg,(BACKGROUND_BLUR_RATE,BACKGROUND_BLUR_RATE)),(b,h))
-            self.bg_image.blit(pygame.image.load("asset/wasted.png"),(134,200))
-            self.bg_image.blit(self.font.render(f"Final Score:{str("{:06d}".format(self.score))}", True, WHITE),(140,300))
-        option(self,[180,400,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2)
+            self.bg_image.blit(pygame.image.load("asset/wasted.png"),(b/2-166,h/2-100))
+            self.bg_image.blit(self.font.render(f"Final Score:{str("{:06d}".format(self.score))}", True, WHITE),(b/2-160,h/2))
+        option(self,[b/2-120,h/2+100,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2)
         self.bluring_time = 0
     def UI__term__(self):
         self.UI_sprite.empty()
@@ -139,9 +138,9 @@ class game:
     def menu__init__(self):
         self.bg_image_copy = self.bg.copy()
         self.bluring_time = OPTION_APPEAR_TIME
-        option(self,[13,255,167,91],"asset/option_spreadsheet.png",0,"ui",image_no=0,apppear_method="boom")
-        option(self,[180,255,167,91],"asset/option_spreadsheet.png",1,"main",image_no=1,apppear_method="boom")
-        option(self,[347,255,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2,apppear_method="boom")
+        option(self,[b/2-287,h/2-45,167,91],"asset/option_spreadsheet.png",0,"ui",image_no=0,apppear_method="boom")
+        option(self,[b/2-120,h/2-45,167,91],"asset/option_spreadsheet.png",1,"main",image_no=1,apppear_method="boom")
+        option(self,[b/2+47,h/2-45,167,91],"asset/option_spreadsheet.png",0,"main",image_no=2,apppear_method="boom")
 
     def ESC_get_pressed(self):
         if self.status == "main":
