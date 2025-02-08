@@ -152,6 +152,7 @@ class sim_bullet(pygame.sprite.Sprite):
     def __init__(self, game, png, init_pos, scale, groups,damage,**kwargs):
         self.exist = True
         self.asdf = True
+        self.jkl = True
         self.damage = damage
         self.game = game
         self.arg_dict = {
@@ -263,6 +264,7 @@ class sim_enemy(pygame.sprite.Sprite):
     def __init__(self,game,png,init_pos,scale,**kwargs):
         self.exist = True
         self.asdf = True
+        self.jkl = True
         self.game = game
         self.time = 0
         self.arg_dict = {
@@ -316,7 +318,8 @@ class sim_enemy(pygame.sprite.Sprite):
             self.rect[0] += self.arg_dict["sines"][0]*math.sin(self.time*self.arg_dict["sines"][1])
 
         if rect_in_game_area_y(self.rect) == False:
-            self.exist = False
+            self.jkl = False
+            self.asdf = False
     def hit(self):
         for i in get_hit(self):
             self.health += -i.damage

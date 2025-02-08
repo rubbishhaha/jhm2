@@ -96,7 +96,8 @@ class game:
         for sprite in self.main_sprite:
             if sprite.asdf == False:
                 if sprite in self.main_enemy_sprite:
-                    self.score += sprite.arg_dict["score"]
+                    if sprite.jkl:
+                        self.score += sprite.arg_dict["score"]
                     if math.floor(self.score/HEALTH_GIVEN_SCORE) > self.a2:
                         sim_enemy(self,"asset/health_normal.png",(random.randint(0,b),-49),(50,50),health=1,speed=3,type="heart",rotation=90)
                         self.a2 = math.floor(self.score/HEALTH_GIVEN_SCORE)
@@ -174,7 +175,7 @@ class enemy_spawner():
     def shotgun_shooter(self):
         sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(70,70),health=30,speed=2,shooting=True,shooting_method="poly",shooting_method_c1=[36,0,65],bullet="sim_bullet",bullet_arg={"speed":10,"hit_function":"explosion"},shooting_rate=0.5,type="shooting_enemy",color=BLUE,score=40)
     def tracker(self):
-        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(60,60),health=10,speed=3,shooting=True,bullet_size=[128,128],bullet_arg={"speed":-5,"hit_function":"explosion","direction":270,"tracking":True,"tracking_rotation":2,"target":"player"},shooting_rate=1.5,type="shooting_enemy",color=RED,score=30)
+        sim_enemy(self,"asset/shooting_enemy.png",(random.randint(0,b),-49),(60,60),health=10,speed=3,shooting=True,bullet_size=[128,128],bullet_arg={"speed":-5,"hit_function":"explosion","direction":270,"tracking":True,"tracking_rotation":4,"target":"player","track_speed_increase":[1,0]},shooting_rate=1.5,type="shooting_enemy",color=RED,score=30)
     def little_boss(self):
         sim_enemy(self,"asset/heavy_enemy.png",(b/2,-100),(200,200),health=1800,speed=1,shooting=True,shooting_method="poly",shooting_method_c1=[20,0,18],bullet_size=[512,512],bullet_arg={"speed":10,"hit_function":"explosion","tracking":True,"tracking_rotation":15,"target":"player","track_speed_increase":[0.5,-0.4]},shooting_rate=1,type="boss",color=RED,score=1000)
         self.spawn_cd = 500
